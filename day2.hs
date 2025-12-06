@@ -1,5 +1,7 @@
+import Control.Arrow
 import Control.Monad
 import Data.Char
+import Data.List
 import Text.ParserCombinators.ReadP
 
 parser :: ReadP [(Int, Int)]
@@ -28,4 +30,18 @@ toInvalid n = n * succ tenPow
 
 genList (l, u) = takeWhile (<= u) . fmap toInvalid $ [(next l) ..]
 
-main = getContents >>= print . sum . (parse >=> genList)
+allNums d = sortUnique $ dv >>= (\x -> ((genN (d `div` x) x)*) <$> (mkNums x))
+  where
+    dv = [x | x <- [1..(pred d)], d `mod` x == 0]
+    sortUnique = fmap head . group . sort
+    genN n d = sum $ take n $ ((10^) . (*d) <$> [0..])
+    mkNums d = [10^(pred d)..(pred (10^d))]
+
+procRange (a, b) = takeWhile (<=b) . dropWhile (<a) $ nums
+  where
+    nums = [numDigits a..numDigits b] >>= allNums
+
+part1 = sum . (parse >=> genList)
+part2 = sum . (parse >=> procRange)
+
+main = getContents >>= print . (part1 &&& part2)
